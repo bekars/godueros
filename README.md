@@ -1,1 +1,1 @@
-# goDuerOS
+# goDuerOS - DuerOS Client by Go
