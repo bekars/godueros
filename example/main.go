@@ -1,17 +1,34 @@
 package main
 
 import (
-	"fmt"
+/*	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
 	"golang.org/x/net/http2"
-	"dueros"
+*/
+	"github.com/bekars/godueros"
+	"fmt"
+	"time"
+	"github.com/gordonklaus/portaudio"
 )
 
 func main() {
-	dueros.abc()
+
+	portaudio.Initialize()
+	defer portaudio.Terminate()
+
+	mic := godueros.NewDuMic(time.Second / 3)
+	fmt.Printf("hw %d\n", mic.GetHw())
+	defer mic.Close()
+	CheckErr(mic.Start())
+	time.Sleep(60 * time.Second)
+	CheckErr(mic.Stop())
+
+	/*
+	godueros.Abc()
+
 	fmt.Printf("%s Hello!", "DuerOS")
 
 	client := http.Client{
@@ -80,6 +97,12 @@ func main() {
 	}
 
 	fmt.Println(string(body))
+*/
 
+}
 
+func CheckErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
