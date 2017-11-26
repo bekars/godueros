@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/http2"
 */
 	"github.com/bekars/godueros"
-	"fmt"
+	//"fmt"
 	"time"
 	"github.com/gordonklaus/portaudio"
 )
@@ -19,12 +19,33 @@ func main() {
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
-	mic := godueros.NewDuMic(time.Second / 3)
-	fmt.Printf("hw %d\n", mic.GetHw())
+	mic := godueros.NewDuMic(time.Second * 3)
+	mic.GetHw()
+	mic.StartRecord()
+	time.Sleep(3 * time.Second)
+	mic.StopRecord()
+
+	mic.PlaySound()
+	mic.StartRecord()
+	time.Sleep(3 * time.Second)
+	mic.StopRecord()
+
+	//player, _ := godueros.NewDuPlayer()
+	//player.PlayFile("/Users/baiyu/Hero.aiff")
+	//player.Start()
+	//time.Sleep(5 * time.Second)
+	//player.Stop()
+
+	/*
 	defer mic.Close()
 	CheckErr(mic.Start())
-	time.Sleep(60 * time.Second)
+	time.Sleep(3 * time.Second)
+
+	fmt.Printf("Start Playing ...\n")
+
+	mic.PlaySound()
 	CheckErr(mic.Stop())
+	*/
 
 	/*
 	godueros.Abc()

@@ -6,23 +6,26 @@ import (
 //	"fmt"
 	"os"
 	"text/template"
+	"fmt"
 )
 
 type DuMic struct {
-	hw int
 	*portaudio.Stream
 	buffer []float32
-	i int
+	index int
+	duration int
 }
 
 func NewDuMic(delay time.Duration) (mic *DuMic) {
 	h, err := portaudio.DefaultHostApi()
 	CheckErr(err)
-	p := portaudio.LowLatencyParameters(h.DefaultInputDevice, h.DefaultOutputDevice)
-	p.Input.Channels = 1
-	p.Output.Channels = 1
+	p := portaudio.LowLatencyParameters(h.DefaultInputDevice, nil/*h.DefaultOutputDevice*/)
+	p.Input.Channels = 2
 
-	mic = &DuMic{buffer: make([]float32, int(p.SampleRate * delay.Seconds()))}
+	mic = &DuMic{
+		buffer: make([]float32, int(2 * p.SampleRate * delay.Seconds())),
+		duration: int(delay.Seconds()),
+		}
 	mic.Stream, err = portaudio.OpenStream(p, mic.processAudio)
 	CheckErr(err)
 	return
@@ -34,22 +37,16 @@ func (mic *DuMic) processAudio(in, out []float32) {
 	//}
 
 	for i := range in {
-		//out[i] = .7 * mic.buffer[mic.i]
-		mic.buffer[mic.i] = in[i]
-		mic.i = (mic.i + 1) % len(mic.buffer)
+		mic.buffer[mic.index] = in[i]
+		mic.index = (mic.index + 1) % len(mic.buffer)
 	}
 }
 
-func (mic *DuMic)SetHw(hw int) {
-	mic.hw = hw
-}
-
-func (mic *DuMic)GetHw() int {
+func (mic *DuMic)GetHw() {
 	hs, err := portaudio.HostApis()
 	CheckErr(err)
 	err = tmpl.Execute(os.Stdout, hs)
 	CheckErr(err)
-	return mic.hw
 }
 
 var tmpl = template.Must(template.New("").Parse(
@@ -71,24 +68,31 @@ var tmpl = template.Must(template.New("").Parse(
 ))
 
 func (mic *DuMic)StartRecord() error {
-	return nil
+	fmt.Printf("### Start Record %d Second\n", mic.duration)
+	return mic.Start()
+}
+
+func (mic *DuMic)StopRecord() error {
+	fmt.Printf("### Stop Record %d Second\n", mic.duration)
+	return mic.Stop()
 }
 
 func (mic *DuMic)PlaySound() error {
 	h, err := portaudio.DefaultHostApi()
 	CheckErr(err)
-	p := portaudio.LowLatencyParameters(h.DefaultInputDevice, h.DefaultOutputDevice)
-	p.Input.Channels = 1
-	p.Output.Channels = 1
+	p := portaudio.LowLatencyParameters(nil, h.DefaultOutputDevice)
+	p.Output.Channels = 2
 
 	mic.Stream, err = portaudio.OpenStream(p, mic.playAudio)
 	CheckErr(err)
+	mic.index = 0
 	return nil
 }
 
-func (mic *DuMic) playAudio(in, out []float32) {
-
-	for i := range mic.buffer {
-		out[i] = mic.buffer[i]
+func (mic *DuMic)playAudio(in, out []float32) {
+	framePerBuffer := len(out)
+	for i := 0; i < framePerBuffer; i++ {
+		out[i] = mic.buffer[mic.index]
+		mic.index = (mic.index + 1) % len(mic.buffer)
 	}
 }

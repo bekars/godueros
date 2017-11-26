@@ -1,10 +1,12 @@
 package godueros
 
 import (
-//	"fmt"
+	"io"
 	"math"
 	"github.com/gordonklaus/portaudio"
 	"fmt"
+	"os"
+	"encoding/binary"
 )
 
 const (
@@ -59,3 +61,58 @@ func (player *DuPlayer) processAudioCB(in, out []float32) {
 	}
 }
 
+func (player *DuPlayer) PlayFile(filename string) error {
+	f, err := os.Open(filename)
+	CheckErr(err)
+	defer f.Close()
+
+	id, data, err := readChunk(f)
+	CheckErr(err)
+	if id.String() != "FORM" {
+		fmt.Println("bad file format")
+		return err
+	}
+	_, err = data.Read(id[:])
+	CheckErr(err)
+	if id.String() != "AIFF" {
+		fmt.Println("bad file format")
+		return err
+	}
+
+	return err
+}
+
+type readerAtSeeker interface {
+	io.Reader
+	io.ReaderAt
+	io.Seeker
+}
+
+type commonChunk struct {
+	NumChans      int16
+	NumSamples    int32
+	BitsPerSample int16
+	SampleRate    [10]byte
+}
+type ID [4]byte
+
+func (id ID) String() string {
+	return string(id[:])
+}
+
+func readChunk(r readerAtSeeker) (id ID, data *io.SectionReader, err error) {
+	_, err = r.Read(id[:])
+	if err != nil {
+		return
+	}
+	var n int32
+	err = binary.Read(r, binary.BigEndian, &n)
+	if err != nil {
+		return
+	}
+	fmt.Printf("## ReadChunk %d\n", n)
+	off, _ := r.Seek(0, 1)
+	data = io.NewSectionReader(r, off, int64(n))
+	_, err = r.Seek(int64(n), 1)
+	return
+}
