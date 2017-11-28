@@ -1,12 +1,11 @@
 package godueros
 
 import (
-	"github.com/gordonklaus/portaudio"
-	"time"
-//	"fmt"
 	"os"
-	"text/template"
 	"fmt"
+	"time"
+	"text/template"
+	"github.com/gordonklaus/portaudio"
 )
 
 type DuMic struct {
