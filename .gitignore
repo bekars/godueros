@@ -1,2 +1,4 @@
 portaudio
 .idea
+.DS_Store
+*.wav

@@ -6,12 +6,8 @@ import (
 	"log"
 	"net/http"
 	"golang.org/x/net/http2"
-	"crypto/tls"
-	"net"
-)
-
-var (
-	access_token="26.687423ae6cd02c090ef92af1b64be322.2592000.1514813398.2300547068-10218111"
+//	"crypto/tls"
+//	"net"
 )
 
 type DuDirective struct {
@@ -21,10 +17,13 @@ type DuDirective struct {
 func (d *DuDirective)HTTP2() {
 	req, _ := http.NewRequest("GET", "https://http2.golang.org/", nil)
 	rt := &http2.Transport{
+		/*
 		AllowHTTP: true,
 		DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
 			return net.Dial(network, addr)
-		}}
+		},
+		*/
+	}
 
 	client := &http.Client{
 		Transport: rt,
@@ -42,7 +41,7 @@ func (d *DuDirective)HTTP2() {
 	fmt.Println(res.Header)
 }
 
-func (d *DuDirective)SendVoice() error {
+func (d *DuDirective)ConnSrv() error {
 	client := &http.Client{
 		Transport: &http2.Transport{},
 	}
@@ -53,23 +52,27 @@ func (d *DuDirective)SendVoice() error {
 	}
 
 	request.Header.Set("authorization", "Bearer " + access_token)
-	request.Header.Set("dueros-device-id", "wh9foSD4KnZAa8kyG1l62SdwkNHlVfuH")
+	request.Header.Set("dueros-device-id", device_id)
 
+	fmt.Println("Do request")
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
 		fmt.Printf("Get error", err)
 	}
-	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-		fmt.Printf("Get body error", err)
-	}
+	go func() {
+		fmt.Println("Read body")
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			fmt.Printf("Get body error", err)
+		}
 
-	fmt.Println(string(body))
-	fmt.Println(response.Header)
+		fmt.Println(string(body))
+		fmt.Println(response.Header)
+		response.Body.Close()
+	}()
 
 	return err
 }
+

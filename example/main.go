@@ -1,61 +1,62 @@
 package main
 
 import (
-/*	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-
-	"golang.org/x/net/http2"
-*/
-	"github.com/bekars/godueros"
-	//"fmt"
 	"time"
+	"github.com/bekars/godueros"
 	"github.com/gordonklaus/portaudio"
+	"fmt"
 )
 
-func main() {
+const (
+	NUM_SEC = 1
+)
 
-	directive := &godueros.DuDirective{}
-	directive.HTTP2()
-	return
-
+func playFile() {
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
-	mic := godueros.NewDuMic(time.Second * 3)
+	mic := godueros.NewDuMic(time.Second * NUM_SEC)
+	mic.LoadFile("audio.wav")
+	mic.PlaySound()
+	mic.StartRecord()
+	time.Sleep(time.Second * NUM_SEC)
+	mic.StopRecord()
+}
+
+func recordFile() {
+	portaudio.Initialize()
+	defer portaudio.Terminate()
+
+	fmt.Println("Start Record Voice")
+	mic := godueros.NewDuMic(time.Second * NUM_SEC)
 	mic.GetHw()
 	mic.StartRecord()
-	time.Sleep(3 * time.Second)
+	time.Sleep(time.Second * NUM_SEC)
 	mic.StopRecord()
 
+	mic.WriteFile()
 	mic.PlaySound()
 	mic.StartRecord()
-	time.Sleep(3 * time.Second)
+	time.Sleep(time.Second * NUM_SEC)
 	mic.StopRecord()
+}
 
-	//player, _ := godueros.NewDuPlayer()
-	//player.PlayFile("/Users/baiyu/Hero.aiff")
-	//player.Start()
-	//time.Sleep(5 * time.Second)
-	//player.Stop()
+func main() {
+	//playFile()
+	//return
 
-	/*
-	defer mic.Close()
-	CheckErr(mic.Start())
-	time.Sleep(3 * time.Second)
+	//recordFile()
+	//return
 
-	fmt.Printf("Start Playing ...\n")
+	//directive := &godueros.DuDirective{}
+	//directive.ConnSrv()
 
-	mic.PlaySound()
-	CheckErr(mic.Stop())
-	*/
+	event := &godueros.DuEvent{}
+	event.SendEvent()
+	time.Sleep(time.Second * 5)
+	return
 
-	/*
-	godueros.Abc()
-
-	fmt.Printf("%s Hello!", "DuerOS")
-
+/*
 	ping_request, err := http.NewRequest("GET", "https://dueros-h2.baidu.com/dcs/v1/ping", nil)
 	if err != nil {
 		fmt.Println(err)
@@ -108,8 +109,3 @@ func main() {
 
 }
 
-func CheckErr(err error) {
-	if err != nil {
-		panic(err)
-	}
-}

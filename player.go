@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	Num_Seconds 		int32 = 5
-	Sample_Rate 		int32 = 44100
-	Frame_Per_Buffer 	int32 = 64
+	//Num_Seconds 		int32 = 5
+	//Sample_Rate 		int32 = 44100
+	//Frame_Per_Buffer 	int32 = 64
 	Table_Size 			int = 126
 )
 
