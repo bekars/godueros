@@ -16,6 +16,10 @@ import (
 
 func main() {
 
+	directive := &godueros.DuDirective{}
+	directive.HTTP2()
+	return
+
 	portaudio.Initialize()
 	defer portaudio.Terminate()
 
@@ -51,24 +55,6 @@ func main() {
 	godueros.Abc()
 
 	fmt.Printf("%s Hello!", "DuerOS")
-
-	client := http.Client{
-		Transport: &http2.Transport{},
-	}
-
-	request, err := http.NewRequest("GET", "https://dueros-h2.baidu.com/dcs/v1/directives", nil)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	request.Header.Set("authorization", "Bearer 23.34e01113d7efe0c1ea0ad11a03aee31e.2592000.1512300410.2300547068-10218111")
-	request.Header.Set("dueros-device-id", "wh9foSD4KnZAa8kyG1l62SdwkNHlVfuH")
-
-	response, err := client.Do(request)
-	if err != nil {
-		log.Fatal(err)
-		fmt.Printf("Get error", err)
-	}
 
 	ping_request, err := http.NewRequest("GET", "https://dueros-h2.baidu.com/dcs/v1/ping", nil)
 	if err != nil {
