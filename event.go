@@ -57,7 +57,7 @@ func (e *DuEvent)SendEvent() {
 	}
 
 	dcs := &DuDCS{}
-	multipart, _ := dcs.GetMultiPartData(json, e.getVoiceFromFile("audio.wav"), boundary)
+	multipart, _ := dcs.GetMultiPartData(json, e.getVoiceFromFile("voice/stock.wav"), boundary)
 
 	fmt.Println(multipart.String())
 
