@@ -6,14 +6,13 @@ import (
 	"log"
 	"net/http"
 	"golang.org/x/net/http2"
-//	"crypto/tls"
-//	"net"
 )
 
 type DuDirective struct {
 
 }
 
+// test http2
 func (d *DuDirective)HTTP2() {
 	req, _ := http.NewRequest("GET", "https://http2.golang.org/", nil)
 	rt := &http2.Transport{
@@ -41,11 +40,12 @@ func (d *DuDirective)HTTP2() {
 	fmt.Println(res.Header)
 }
 
-func (d *DuDirective)ConnSrv() error {
-	client := &http.Client{
+func (d *DuDirective)ConnSrv() (client *http.Client, err error) {
+	client = &http.Client{
 		Transport: &http2.Transport{},
 	}
 
+	fmt.Println("### Directive Conn Server")
 	request, err := http.NewRequest("GET", "https://dueros-h2.baidu.com/dcs/v1/directives", nil)
 	if err != nil {
 		fmt.Println(err)
@@ -54,7 +54,6 @@ func (d *DuDirective)ConnSrv() error {
 	request.Header.Set("authorization", "Bearer " + access_token)
 	request.Header.Set("dueros-device-id", device_id)
 
-	fmt.Println("Do request")
 	response, err := client.Do(request)
 	if err != nil {
 		log.Fatal(err)
@@ -62,17 +61,17 @@ func (d *DuDirective)ConnSrv() error {
 	}
 
 	go func() {
-		fmt.Println("Read body")
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			fmt.Printf("Get body error", err)
 		}
 
-		fmt.Println(string(body))
+		fmt.Println("### Read Directive body, Get:")
 		fmt.Println(response.Header)
+		fmt.Println(string(body))
 		response.Body.Close()
 	}()
 
-	return err
+	return client, err
 }
 

@@ -1,10 +1,14 @@
 package godueros
 
 const (
-	Sample_Rate 		int32 = 16000
+	Sample_Rate 		int   = 16000
 	// 填满一个buffer调用一次回调
 	Frame_Per_Buffer 	int   = 256
 	Channels_Num		int32 = 1
+	// 10ms per chunk
+	Chunk_Per_Sec       int   = 100
+	// record voice 5m timeout
+	Timeout_Chunk_Num   int   = 500
 )
 
 var (
