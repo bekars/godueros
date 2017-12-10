@@ -16,7 +16,7 @@ const (
 	Table_Size 			int = 126
 )
 
-type DuPlayer struct {
+type DuSpeaker struct {
 	sine []float32
 	left_phase int
 	right_phase int
@@ -24,8 +24,8 @@ type DuPlayer struct {
 	*portaudio.Stream
 }
 
-func NewDuPlayer() (player *DuPlayer, err error) {
-	player = &DuPlayer{sine : make([]float32, Table_Size)}
+func NewDuSpeaker() (player *DuSpeaker, err error) {
+	player = &DuSpeaker{sine : make([]float32, Table_Size)}
 	err = nil
 
 	for i := 0; i < Table_Size; i++ {
@@ -44,7 +44,7 @@ func NewDuPlayer() (player *DuPlayer, err error) {
 	return
 }
 
-func (player *DuPlayer) processAudioCB(in, out []float32) {
+func (player *DuSpeaker) processAudioCB(in, out []float32) {
 	fmt.Printf("in/out len: %d/%d\n", len(in), len(out))
 	for i := 0; i < len(out); i += 2 {
 		out[i] = player.sine[player.left_phase]
@@ -61,7 +61,7 @@ func (player *DuPlayer) processAudioCB(in, out []float32) {
 	}
 }
 
-func (player *DuPlayer) PlayFile(filename string) error {
+func (player *DuSpeaker) PlayFile(filename string) error {
 	f, err := os.Open(filename)
 	CheckErr(err)
 	defer f.Close()
