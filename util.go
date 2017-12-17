@@ -11,6 +11,12 @@ func CheckErr(err error) {
 	}
 }
 
+func uint32ToByte(n uint32) []byte {
+	bytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(bytes, n)
+	return bytes
+}
+
 func float32ToByte(f float32) []byte {
 	bits := math.Float32bits(f)
 	bytes := make([]byte, 4)

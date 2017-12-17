@@ -53,7 +53,9 @@ func newDuEvent(client *http.Client, ch chan VoiceChannel, core *DuCore) (event 
 
 func (e *DuEvent) SendDCS(voice []byte) (err error) {
 	client := e.client
-	dcs := &DuDCS{}
+	dcs := &DuDCS{
+		speaker: e.core.Speaker,
+	}
 	multipart, _ := dcs.GetMultiPartData(json, voice, boundary)
 
 	request, err := http.NewRequest("POST", "https://dueros-h2.baidu.com/dcs/v1/events", multipart)
@@ -61,8 +63,8 @@ func (e *DuEvent) SendDCS(voice []byte) (err error) {
 		fmt.Println(err)
 	}
 
-	request.Header.Set("authorization", "Bearer " + access_token)
-	request.Header.Set("dueros-device-id", device_id)
+	request.Header.Set("authorization", "Bearer " + ACCESS_TOKEN)
+	request.Header.Set("dueros-device-id", DEVICE_ID)
 	request.Header.Set("content-type", "multipart/form-data; boundary=" + boundary)
 
 
@@ -80,6 +82,7 @@ func (e *DuEvent) SendDCS(voice []byte) (err error) {
 	}
 
 	fmt.Println(response.Header)
+	//fmt.Println(string(body))
 	dcs.ReadMultiPartData(bytes.NewReader(body), "___dueros_dcs_v1_boundary___")
 
 	return err
@@ -114,8 +117,8 @@ func (e *DuEvent) SendEvent() {
 		fmt.Println(err)
 	}
 
-	request.Header.Set("authorization", "Bearer " + access_token)
-	request.Header.Set("dueros-device-id", device_id)
+	request.Header.Set("authorization", "Bearer " + ACCESS_TOKEN)
+	request.Header.Set("dueros-device-id", DEVICE_ID)
 	request.Header.Set("content-type", "multipart/form-data; boundary=" + boundary)
 
 	fmt.Println("Do Event Request")

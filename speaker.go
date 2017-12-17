@@ -3,10 +3,13 @@ package godueros
 import (
 	"io"
 	"math"
-	"github.com/gordonklaus/portaudio"
 	"fmt"
 	"os"
 	"encoding/binary"
+	"bytes"
+	"github.com/bobertlo/go-mpg123/mpg123"
+	"github.com/gordonklaus/portaudio"
+	"time"
 )
 
 const (
@@ -15,6 +18,26 @@ const (
 	//Frame_Per_Buffer 	int32 = 64
 	Table_Size 			int = 126
 )
+
+type wavChunk struct {
+	ChunkID 	  uint32  	// "RIFF"
+	ChunkSize 	  uint32 	// Total bytes = 36 + Subchunk2Size
+	Format 		  uint32   	// "WAVE"
+
+	// sub-chunk "fmt"
+	Subchunk1ID   uint32   	// "fmt "
+	Subchunk1Size uint32 	// 16 for PCM
+	AudioFormat   uint16   	// PCM = 1
+	NumChannels   uint16  	// Mono = 1, Stereo = 2, etc.
+	SampleRate    uint32    // 8000, 44100, etc.
+	ByteRate      uint32  	// = SampleRate * NumChannels * BitsPerSample/8
+	BlockAlign    uint16   	// = NumChannels * BitsPerSample/8
+	BitsPerSample uint16 	// 8bits, 16bits, etc.
+
+	// sub-chunk "data"
+	Subchunk2ID   uint32 	// "data"
+	Subchunk2Size uint32 	// data size
+}
 
 type DuSpeaker struct {
 	sine []float32
@@ -66,19 +89,12 @@ func (player *DuSpeaker) PlayFile(filename string) error {
 	CheckErr(err)
 	defer f.Close()
 
-	id, data, err := readChunk(f)
+	chunk, err := readWavChunk(f)
 	CheckErr(err)
-	if id.String() != "FORM" {
-		fmt.Println("bad file format")
-		return err
-	}
-	_, err = data.Read(id[:])
-	CheckErr(err)
-	if id.String() != "AIFF" {
-		fmt.Println("bad file format")
-		return err
-	}
 
+	byte := uint32ToByte(chunk.ChunkID)
+	fmt.Println(byte)
+	fmt.Printf("%x %x %x %x\n", byte[0], byte[1], byte[2], byte[3])
 	return err
 }
 
@@ -88,31 +104,86 @@ type readerAtSeeker interface {
 	io.Seeker
 }
 
-type commonChunk struct {
-	NumChans      int16
-	NumSamples    int32
-	BitsPerSample int16
-	SampleRate    [10]byte
-}
-type ID [4]byte
-
-func (id ID) String() string {
-	return string(id[:])
-}
-
-func readChunk(r readerAtSeeker) (id ID, data *io.SectionReader, err error) {
-	_, err = r.Read(id[:])
+func readWavChunk(r readerAtSeeker) (chunk *wavChunk, err error) {
+	chunk = &wavChunk{}
+	err = binary.Read(r, binary.BigEndian, chunk)
 	if err != nil {
 		return
 	}
-	var n int32
-	err = binary.Read(r, binary.BigEndian, &n)
-	if err != nil {
-		return
-	}
-	fmt.Printf("## ReadChunk %d\n", n)
-	off, _ := r.Seek(0, 1)
-	data = io.NewSectionReader(r, off, int64(n))
-	_, err = r.Seek(int64(n), 1)
 	return
+}
+
+func (speaker *DuSpeaker) PlayMP3File(filename string) (err error) {
+	// create mpg123 decoder instance
+	decoder, err := mpg123.NewDecoder("")
+	CheckErr(err)
+
+	CheckErr(decoder.Open(filename))
+	defer decoder.Close()
+
+	// get audio format information
+	rate, channels, _ := decoder.GetFormat()
+
+	// make sure output format does not change
+	decoder.FormatNone()
+	decoder.Format(rate, channels, mpg123.ENC_SIGNED_16)
+
+	out := make([]int16, 8192)
+	stream, err := portaudio.OpenDefaultStream(0, channels, float64(rate), len(out), &out)
+	CheckErr(err)
+	defer stream.Close()
+
+	CheckErr(stream.Start())
+	defer stream.Stop()
+	for {
+		audio := make([]byte, 2 * len(out))
+		n, err := decoder.Read(audio)
+		fmt.Printf("### %d\n", n)
+		if n > 0 {
+			CheckErr(binary.Read(bytes.NewBuffer(audio), binary.LittleEndian, out))
+			CheckErr(stream.Write())
+		}
+		if err == mpg123.EOF {
+			time.Sleep(3 * time.Second) // wait voice play finish
+			break
+		}
+		CheckErr(err)
+	}
+	return err
+}
+
+func (speaker *DuSpeaker) PlayMP3Audio(audio []byte) (err error) {
+	// create mpg123 decoder instance
+	decoder, err := mpg123.NewDecoder("")
+	CheckErr(err)
+
+	CheckErr(decoder.Feed(audio))
+
+	// get audio format information
+	rate, channels, _ := decoder.GetFormat()
+
+	// make sure output format does not change
+	decoder.FormatNone()
+	decoder.Format(rate, channels, mpg123.ENC_SIGNED_16)
+
+	out := make([]int16, 8192)
+	stream, err := portaudio.OpenDefaultStream(0, channels, float64(rate), len(out), &out)
+	CheckErr(err)
+	defer stream.Close()
+
+	CheckErr(stream.Start())
+	defer stream.Stop()
+	for {
+		audio := make([]byte, 2 * len(out))
+		n, err := decoder.Read(audio)
+		CheckErr(err)
+		if n > 0 {
+			CheckErr(binary.Read(bytes.NewBuffer(audio), binary.LittleEndian, out))
+			CheckErr(stream.Write())
+		}
+		if err == mpg123.EOF {
+			break
+		}
+	}
+	return err
 }

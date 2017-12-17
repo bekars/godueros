@@ -20,7 +20,7 @@ type DuCore struct {
 	directive  *DuDirective
 	event      *DuEvent
 	recorder   *DuRecorder
-	speaker    *DuSpeaker
+	Speaker    *DuSpeaker
 }
 
 func NewDuCore()(core *DuCore, err error)  {
@@ -28,7 +28,7 @@ func NewDuCore()(core *DuCore, err error)  {
 	core = &DuCore{
 		directive: 	&DuDirective{},
 		event: 		&DuEvent{},
-		speaker: 	&DuSpeaker{},
+		Speaker: 	&DuSpeaker{},
 	}
 
 	return core, err
@@ -54,6 +54,8 @@ func (core *DuCore)Run() (err error) {
 	core.recorder, err = NewDuRecorder(core.recorderCh)
 	core.recorder.Start()
 
+	fmt.Println("Please say something ...")
+
 	select {
 	case <- core.recorderCh:
 		b := make([]byte, 16000)
@@ -74,6 +76,8 @@ func (core *DuCore)Run() (err error) {
 		core.recorder.Stop()
 
 		core.event.SendDCS(b)
+
+		core.Speaker.PlayMP3File(REPLY_FILE)
 	}
 	/*
 	directive: connect

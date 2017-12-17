@@ -10,7 +10,7 @@ import (
 )
 
 type DuDCS struct {
-
+	speaker *DuSpeaker
 }
 
 func (dcs *DuDCS)GetMultiPartData(event string, audio []byte, boundary string) (body *bytes.Buffer, err error) {
@@ -73,10 +73,12 @@ func (dcs *DuDCS)ReadMultiPartData(r io.Reader, boundary string) {
 		if err != nil {
 			CheckErr(err)
 		}
-		fmt.Println("Form name: ", part.FormName(), "'s", "Content is: ", string(content))
 
 		if part.FormName() != "metadata" {
-			ioutil.WriteFile("dureply.wav", content, 0666)
+			ioutil.WriteFile(REPLY_FILE, content, 0666)
+			//dcs.speaker.PlayMP3Audio(content)
+		} else {
+			fmt.Println("Form name: ", part.FormName(), "'s", "Content is: ", string(content))
 		}
 	}
 }

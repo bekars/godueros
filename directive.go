@@ -45,14 +45,13 @@ func (d *DuDirective)ConnSrv() (client *http.Client, err error) {
 		Transport: &http2.Transport{},
 	}
 
-	fmt.Println("### Directive Conn Server")
 	request, err := http.NewRequest("GET", "https://dueros-h2.baidu.com/dcs/v1/directives", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	request.Header.Set("authorization", "Bearer " + access_token)
-	request.Header.Set("dueros-device-id", device_id)
+	request.Header.Set("authorization", "Bearer " + ACCESS_TOKEN)
+	request.Header.Set("dueros-device-id", DEVICE_ID)
 
 	response, err := client.Do(request)
 	if err != nil {

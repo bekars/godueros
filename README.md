@@ -3,6 +3,7 @@
 ## TODO
 
 * [OK] H2 send voice to dueros
-* core framework
-* direct and event use same h2 connection
+* [OK] direct and event use same h2 connection
+* [OK] core framework
+* play event receive voice
 * receive the controller command
