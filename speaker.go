@@ -138,7 +138,6 @@ func (speaker *DuSpeaker) PlayMP3File(filename string) (err error) {
 	for {
 		audio := make([]byte, 2 * len(out))
 		n, err := decoder.Read(audio)
-		fmt.Printf("### %d\n", n)
 		if n > 0 {
 			CheckErr(binary.Read(bytes.NewBuffer(audio), binary.LittleEndian, out))
 			CheckErr(stream.Write())

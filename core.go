@@ -69,7 +69,7 @@ func (core *DuCore)Run() (err error) {
 				}
 			}
 			if core.recorder.Rs == RS_TIMEOUT {
-				fmt.Println("Receive Voice Timeout")
+				//fmt.Println("Receive Voice Timeout")
 				break
 			}
 		}
@@ -79,18 +79,6 @@ func (core *DuCore)Run() (err error) {
 
 		core.Speaker.PlayMP3File(REPLY_FILE)
 	}
-	/*
-	directive: connect
-
-	for {
-	snowboy: wake up
-		event: send voice server
-		mic: record voice
-		event: receive result
-		directive: receive action
-		speaker: play sound
-	}
-	 */
 
 	return err
 }
