@@ -1,6 +1,6 @@
 # goDuerOS - DuerOS Client by Go
 
-golang实现的DuerOS客户端SDK，目前只实现了基本的问答功能，交流和学习使用。
+golang实现的DuerOS客户端SDK，目前只实现了基本的问答功能，仅交流和学习使用。
 
 ## Pre RUN
 
